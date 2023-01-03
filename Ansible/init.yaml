@@ -1,0 +1,101 @@
+# This Playbook update the packages, install the requiered packages 
+# for Docker and install Docker on all hosts. This playbook is intend
+# to be used only on debian system.
+
+- hosts: all
+
+  vars:
+# list of packages that must be installed
+    package_list:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
+    - software-properties-common
+    - python3-pip
+    - virtualenv
+    - python3-setuptools
+
+# first, check if hosts are replying to ping pong
+  tasks:
+  - name: Check reply
+    ping:
+
+# check if the system is running on debian as the playbook is made for it
+  - name: Fail if system is not Debian
+    fail:
+      msg: "This playbook can only be run on systems that are running Debian."
+    when: ansible_os_family != 'Debian'
+
+# update packages list and update installed packages:
+  - name: update packages list
+    become: yes #become sudo
+    become_method: sudo #become sudo
+    apt:
+      update_cache: yes
+
+# then upgrade all installed packages:
+  - name: upgrade packages
+    become: yes #become sudo
+    become_method: sudo #become sudo
+    apt:
+      upgrade: dist
+      update_cache: yes
+      cache_valid_time: 86400
+      force_apt_get: yes
+      autoremove: yes
+
+# install base package needed:
+  - name: Install multiple packages
+    become: yes #become sudo
+    become_method: sudo #become sudo
+    apt:
+        name: "{{item}}"
+        state: latest
+        update_cache: yes
+    loop: "{{ package_list }}"
+
+
+# install Docker
+  - name: Add Docker GPG apt Key
+    become: yes #become sudo
+    become_method: sudo #become sudo
+    apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+  - name: Add Docker Repository
+    become: yes #become sudo
+    become_method: sudo #become sudo
+    apt_repository:
+      repo: deb https://download.docker.com/linux/ubuntu bionic stable
+      state: present
+
+  - name: Update apt and install docker
+    become: yes #become sudo
+    become_method: sudo #become sudo
+    apt:
+        name: "{{item}}"
+        state: latest
+        update_cache: yes
+    loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+  - name: Install Docker Module for Python
+    pip:
+      name: docker
+
+  - name: check if docker service is correctly started
+    service:
+      name: docker
+      state: started
+      enabled: yes
+      
+  handlers:
+    - name: restart docker
+      service: 
+        name: docker 
+        state: restarted

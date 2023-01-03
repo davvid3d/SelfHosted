@@ -1,0 +1,13 @@
+- hosts: build
+  gather_facts: no
+  become: yes #become sudo
+  become_method: sudo #become sudo
+  tasks:
+
+    - include_vars:
+        file: image_var.yaml
+
+    - name: clean remote files
+      file:
+        path: "/tmp/{{image_name}}"
+        state: absent

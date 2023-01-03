@@ -1,0 +1,23 @@
+# This Playbook save the built Docker image previously done by the "build_docker.yaml" playbook.
+
+- hosts: build
+  become: yes #become sudo
+  become_method: sudo #become sudo
+  gather_facts: no
+  tasks:
+
+    - include_vars:
+        file: image_var.yaml
+
+    - name: archive container image as a tarball
+      docker_image:
+        name: "{{image_name}}:{{image_version}}"
+        archive_path: "/tmp/{{image_name}}/{{image_name}}_{{image_version}}.tar"
+        source: pull
+        state: present
+
+    - name: fetch archived image
+      fetch:
+        src: "/tmp/{{image_name}}/{{image_name}}_{{image_version}}.tar"
+        dest: "./image/{{image_name}}_{{image_version}}.tar"
+        flat: true

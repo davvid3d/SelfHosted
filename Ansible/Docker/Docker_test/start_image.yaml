@@ -1,0 +1,20 @@
+# This Playbook run a simple Docker image, to test the good installation 
+# of the Docker environment and the image build and deployment.
+
+- hosts: build
+  become: yes #become sudo
+  become_method: sudo #become sudo
+  gather_facts: no
+  tasks:
+
+    - include_vars:
+        file: image_var.yaml
+
+    - name: Run the Docker image
+      docker_container:
+        name: "{{image_name}}"
+        image: "{{image_name}}:{{image_version}}"
+        state: started
+        ports: "{{ports}}"
+        env: "{{item}}"
+      loop: "{{envs}}"

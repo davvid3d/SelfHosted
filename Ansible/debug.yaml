@@ -1,0 +1,4 @@
+- hosts: servers
+  tasks:
+    - debug:
+        var: ansible_password

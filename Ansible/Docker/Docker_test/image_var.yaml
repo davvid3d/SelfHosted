@@ -1,0 +1,6 @@
+image_name: democontainer
+image_version: V1.1
+ports: 
+  - "8080:8080"
+envs:
+  - MY_ENV_VAR=my_value
